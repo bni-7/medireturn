@@ -16,6 +16,7 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [error, setError] = useState(''); // ✅ Added this
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -32,6 +33,10 @@ const Login = () => {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // ✅ Clear general error too
+    if (error) {
+      setError('');
     }
   };
 
@@ -54,6 +59,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) {
+      return;
+    }
+
     setError('');
     setLoading(true);
 
@@ -63,7 +73,6 @@ const Login = () => {
       
       if (result.success) {
         console.log('✅ Login successful, navigating to dashboard...');
-        // Navigate after a small delay to ensure state is updated
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
         }, 100);
@@ -95,6 +104,13 @@ const Login = () => {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ✅ Show general error */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
             <Input
               label="Email Address"
               type="email"
@@ -162,7 +178,7 @@ const Login = () => {
             </div>
 
             <div className="mt-6 text-center">
-              <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
                 Create an account
               </Link>
             </div>
@@ -172,7 +188,7 @@ const Login = () => {
         {/* Demo Credentials */}
         <div className="mt-6 bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
           <p className="font-medium mb-2">Demo Credentials:</p>
-          <p><strong>Admin:</strong> admin@medireturn.com / admin123</p>
+          <p><strong>Citizen:</strong> test@example.com / Test1234</p>
         </div>
       </div>
     </div>
