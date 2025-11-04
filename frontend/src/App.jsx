@@ -10,14 +10,13 @@ import Dashboard from './pages/Dashboard';
 import CollectionPoints from './pages/CollectionPoints';
 import SchedulePickup from './pages/SchedulePickup';
 import Profile from './pages/Profile';
+import Map from './pages/Map';
+import NotFound from './pages/NotFound';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
-  console.log('🔐 ProtectedRoute check:', { user, loading });
-  
-  // Show loading while checking auth
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -26,17 +25,14 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  // Redirect to login if not authenticated
   if (!user) {
-    console.log('❌ Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
-  console.log('✅ Authenticated, showing protected content');
   return children;
 };
 
-// Public Route Component (redirect if already logged in)
+// Public Route Component
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -49,7 +45,6 @@ const PublicRoute = ({ children }) => {
   }
   
   if (user) {
-    console.log('✅ Already logged in, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -61,15 +56,15 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50">
-          <Header />
           <Toaster position="top-right" />
           
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/collection-points" element={<CollectionPoints />} />
+            <Route path="/map" element={<Map />} />
             
-            {/* Auth Routes - redirect if already logged in */}
+            {/* Auth Routes */}
             <Route 
               path="/login" 
               element={
@@ -112,9 +107,10 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
-          
-          <Footer />
         </div>
       </Router>
     </AuthProvider>
