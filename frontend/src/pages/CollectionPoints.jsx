@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { collectionPointAPI } from '../api/collectionPoints';
+import { collectionPointsAPI } from '../api/collectionPoints';
 import { toast } from 'react-hot-toast';
 
 // Fix for default marker icons in React-Leaflet
@@ -24,20 +24,20 @@ const CollectionPoints = () => {
     fetchCollectionPoints();
   }, []);
 
-  const fetchCollectionPoints = async () => {
+    const fetchCollectionPoints = async () => {
     try {
-      setLoading(true);
-      const response = await collectionPointAPI.getAll();
-      if (response.success) {
-        setCollectionPoints(response.collectionPoints || []);
-      }
+        setLoading(true);
+        const response = await collectionPointsAPI.getAll(); // ✅ Changed to plural
+        if (response) {
+        setCollectionPoints(Array.isArray(response) ? response : []);
+        }
     } catch (error) {
-      console.error('Error fetching collection points:', error);
-      toast.error('Failed to load collection points');
+        console.error('Error fetching collection points:', error);
+        toast.error('Failed to load collection points');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
   const filteredPoints = collectionPoints.filter(point => {
     const matchesSearch = 
