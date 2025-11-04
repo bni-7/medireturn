@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../api/auth';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
@@ -129,3 +129,5 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthContext;
