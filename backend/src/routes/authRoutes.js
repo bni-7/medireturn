@@ -5,8 +5,8 @@ import {
   login, 
   logout, 
   getMe,
-  updateProfile,   // ✅ Add this
-  updatePassword   // ✅ Add this
+  updateProfile,
+  updatePassword
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
@@ -19,10 +19,12 @@ const registerValidation = [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').optional().isIn(['citizen', 'collection_point']).withMessage('Invalid role'),
-  body('address.street').notEmpty().withMessage('Street address is required'),
-  body('address.city').notEmpty().withMessage('City is required'),
-  body('address.pincode').notEmpty().withMessage('Pincode is required'),
-  body('phone').optional().isMobilePhone().withMessage('Invalid phone number')
+  // ✅ Make address fields OPTIONAL during registration
+  body('address.street').optional().trim(),
+  body('address.city').optional().trim(),
+  body('address.state').optional().trim(),
+  body('address.pincode').optional().trim(),
+  body('phone').optional().isMobilePhone('en-IN').withMessage('Invalid phone number')
 ];
 
 const loginValidation = [
@@ -30,7 +32,7 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
-// ✅ Add validation for profile update
+// Profile update validation - Address can be updated here
 const updateProfileValidation = [
   body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
   body('phone').optional().isMobilePhone('en-IN').withMessage('Invalid phone number'),
@@ -40,7 +42,6 @@ const updateProfileValidation = [
   body('address.pincode').optional().isLength({ min: 6, max: 6 }).withMessage('Pincode must be 6 digits')
 ];
 
-// ✅ Add validation for password update
 const updatePasswordValidation = [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
@@ -55,8 +56,8 @@ router.use(protect);
 
 router.post('/logout', logout);
 router.get('/me', getMe);
-router.get('/profile', getMe); // ✅ Add GET /profile endpoint
-router.put('/profile', updateProfileValidation, validate, updateProfile); // ✅ Add PUT /profile
-router.put('/password', updatePasswordValidation, validate, updatePassword); // ✅ Add PUT /password
+router.get('/profile', getMe);
+router.put('/profile', updateProfileValidation, validate, updateProfile);
+router.put('/password', updatePasswordValidation, validate, updatePassword);
 
 export default router;

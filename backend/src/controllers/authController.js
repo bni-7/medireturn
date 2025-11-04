@@ -41,30 +41,38 @@ export const register = async (req, res) => {
       }
     }
 
-    // Create user
-    const user = await User.create({
+    // Create user - address is optional
+    const userData = {
       name,
       email,
       password,
       role: role || ROLES.CITIZEN,
-      address,
       phone,
       referralCode,
       referredBy: referredBy || null
-    });
+    };
 
-    // Generate token and set cookie
+    // Only add address if provided
+    if (address && (address.street || address.city || address.state || address.pincode)) {
+      userData.address = address;
+    }
+
+    const user = await User.create(userData);
+
+    // Generate token
     const token = generateToken(user._id);
-    setTokenCookie(res, token);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
+      token, // ✅ Return token in response (not just cookie)
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        address: user.address,
         referralCode: user.referralCode
       }
     });
@@ -112,19 +120,23 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate token and set cookie
+    // Generate token
     const token = generateToken(user._id);
-    setTokenCookie(res, token);
 
     res.json({
       success: true,
       message: 'Login successful',
+      token, // ✅ Return token in response
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        referralCode: user.referralCode
+        phone: user.phone,
+        address: user.address,
+        referralCode: user.referralCode,
+        points: user.points,
+        totalCollected: user.totalCollected
       }
     });
   } catch (error) {
