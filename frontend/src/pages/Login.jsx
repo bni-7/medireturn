@@ -54,17 +54,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validate()) return;
-
+    setError('');
     setLoading(true);
 
-    const result = await login(formData);
-
-    setLoading(false);
-
-    if (result.success) {
-      navigate('/dashboard');
+    try {
+      console.log('🔐 Submitting login form...');
+      const result = await login(formData);
+      
+      if (result.success) {
+        console.log('✅ Login successful, navigating to dashboard...');
+        // Navigate after a small delay to ensure state is updated
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
+      } else {
+        setError(result.error || 'Login failed');
+      }
+    } catch (err) {
+      console.error('❌ Login submission error:', err);
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
