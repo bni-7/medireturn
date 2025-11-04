@@ -83,13 +83,11 @@ const Register = () => {
       
       if (result.success) {
         console.log('✅ Registration successful, redirecting...');
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
+        // ✅ Simple navigation without setTimeout
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       console.error('❌ Registration error:', error);
-      toast.error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }

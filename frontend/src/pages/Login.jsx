@@ -8,7 +8,7 @@ import { validateEmail, validateRequired } from '../utils/validators';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth(); // ✅ Remove isAuthenticated
 
   const [formData, setFormData] = useState({
     email: '',
@@ -16,25 +16,23 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [error, setError] = useState(''); // ✅ Added this
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
+  // ❌ REMOVE THIS ENTIRE useEffect - Let PublicRoute handle it
+  // React.useEffect(() => {
+  //   if (isAuthenticated) {
+  //     navigate('/dashboard');
+  //   }
+  // }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-    // ✅ Clear general error too
     if (error) {
       setError('');
     }
@@ -73,9 +71,8 @@ const Login = () => {
       
       if (result.success) {
         console.log('✅ Login successful, navigating to dashboard...');
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
+        // ✅ Simple navigation without setTimeout
+        navigate('/dashboard', { replace: true });
       } else {
         setError(result.error || 'Login failed');
       }
@@ -104,7 +101,6 @@ const Login = () => {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ✅ Show general error */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                 {error}
