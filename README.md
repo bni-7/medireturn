@@ -434,9 +434,8 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ## 👥 Team
 
-- **Developer**: Your Name
-- **Contact**: your.email@example.com
-- **GitHub**: [@yourusername](https://github.com/yourusername)
+- **Developer**: Bhavana N I
+
 
 ## 🙏 Acknowledgments
 
