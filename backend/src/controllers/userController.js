@@ -20,7 +20,6 @@ export const getProfile = async (req, res) => {
         address: user.address,
         phone: user.phone,
         points: user.points,
-        badges: user.badges,
         referralCode: user.referralCode,
         totalCollected: user.totalCollected,
         createdAt: user.createdAt
@@ -113,7 +112,6 @@ export const getDashboard = async (req, res) => {
       dashboard: {
         points: user.points,
         totalCollected: user.totalCollected,
-        badges: user.badges,
         totalPickups,
         pendingPickups,
         recentTransactions,
@@ -186,7 +184,7 @@ export const getCityLeaderboard = async (req, res) => {
     })
       .sort({ totalCollected: -1 })
       .limit(limit)
-      .select('name totalCollected points badges');
+      .select('name totalCollected points');
 
     res.json({
       success: true,
@@ -194,8 +192,7 @@ export const getCityLeaderboard = async (req, res) => {
         rank: index + 1,
         name: user.name,
         totalCollected: user.totalCollected,
-        points: user.points,
-        badges: user.badges
+        points: user.points
       }))
     });
   } catch (error) {

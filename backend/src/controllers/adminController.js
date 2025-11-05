@@ -69,9 +69,9 @@ export const getAnalytics = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
-    // Recent activities
-    const recentPickups = await Pickup.find({ status: PICKUP_STATUS.COMPLETED })
-      .sort({ completedAt: -1 })
+    // Recent activities - show all pickups (not just completed)
+    const recentPickups = await Pickup.find()
+      .sort({ createdAt: -1 })
       .limit(10)
       .populate('userId', 'name')
       .populate('collectionPointId', 'name');

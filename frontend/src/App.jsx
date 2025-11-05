@@ -5,8 +5,13 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
+import CollectionPointLogin from './pages/CollectionPointLogin';
+import CitizenLogin from './pages/CitizenLogin';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import CollectionPointDashboard from './pages/CollectionPointDashboard';
 import CollectionPoints from './pages/CollectionPoints';
 import SchedulePickup from './pages/SchedulePickup';
 import Profile from './pages/Profile';
@@ -45,6 +50,58 @@ const PublicRoute = ({ children }) => {
   }
   
   if (user) {
+    // Redirect based on user role
+    if (user.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    } else if (user.role === 'collection_point') {
+      return <Navigate to="/collection-point-dashboard" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/admin-login" replace />;
+  }
+  
+  if (user.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+// Collection Point Route Component
+const CollectionPointRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/collection-point-login" replace />;
+  }
+  
+  if (user.role !== 'collection_point') {
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -86,6 +143,30 @@ function App() {
             } 
           />
           <Route 
+            path="/admin-login" 
+            element={
+              <PublicRoute>
+                <AdminLogin />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/collection-point-login" 
+            element={
+              <PublicRoute>
+                <CollectionPointLogin />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/citizen-login" 
+            element={
+              <PublicRoute>
+                <CitizenLogin />
+              </PublicRoute>
+            } 
+          />
+          <Route 
             path="/register" 
             element={
               <PublicRoute>
@@ -123,6 +204,30 @@ function App() {
                   <Profile />
                 </Layout>
               </ProtectedRoute>
+            } 
+          />
+
+          {/* Admin Routes with Layout */}
+          <Route 
+            path="/admin" 
+            element={
+              <AdminRoute>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
+              </AdminRoute>
+            } 
+          />
+
+          {/* Collection Point Routes with Layout */}
+          <Route 
+            path="/collection-point-dashboard" 
+            element={
+              <CollectionPointRoute>
+                <Layout>
+                  <CollectionPointDashboard />
+                </Layout>
+              </CollectionPointRoute>
             } 
           />
 

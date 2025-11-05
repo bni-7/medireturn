@@ -24,6 +24,35 @@ const CollectionPoints = () => {
     fetchCollectionPoints();
   }, []);
 
+  // Helper function to format operating hours
+  const formatOperatingHours = (operatingHours) => {
+    if (!operatingHours || typeof operatingHours !== 'object') {
+      return 'Hours not available';
+    }
+    
+    // Check if it's a simple object with open/close times
+    if (operatingHours.open && operatingHours.close) {
+      return `${operatingHours.open} - ${operatingHours.close}`;
+    }
+    
+    // Check if it's a weekly schedule object
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const schedule = [];
+    
+    for (const day of days) {
+      if (operatingHours[day] && !operatingHours[day].closed) {
+        schedule.push(`${day.charAt(0).toUpperCase() + day.slice(1)}: ${operatingHours[day].open} - ${operatingHours[day].close}`);
+      }
+    }
+    
+    if (schedule.length > 0) {
+      // Show first day as example
+      return schedule[0];
+    }
+    
+    return 'Hours not available';
+  };
+
     const fetchCollectionPoints = async () => {
     try {
         setLoading(true);
@@ -200,13 +229,13 @@ const CollectionPoints = () => {
                   {point.operatingHours && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <p className="text-sm font-medium text-gray-700">Operating Hours:</p>
-                      <p className="text-sm text-gray-600">{point.operatingHours}</p>
+                      <p className="text-sm text-gray-600">{formatOperatingHours(point.operatingHours)}</p>
                     </div>
                   )}
 
                   <button
                     onClick={() => window.open(
-                      `https://www.google.com/maps/search/?api=1&query=${point.location?.coordinates[1]},${point.location?.coordinates[0]}`,
+                      `https://www.google.com/maps/search/?api=1&query=${point.address?.lat},${point.address?.lng}`,
                       '_blank'
                     )}
                     className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -238,11 +267,11 @@ const CollectionPoints = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {filteredPoints.map((point) => {
-              if (point.location?.coordinates?.length === 2) {
+              if (point.address?.lat && point.address?.lng) {
                 return (
                   <Marker
                     key={point._id}
-                    position={[point.location.coordinates[1], point.location.coordinates[0]]}
+                    position={[point.address.lat, point.address.lng]}
                   >
                     <Popup>
                       <div className="p-2">
@@ -250,12 +279,12 @@ const CollectionPoints = () => {
                         <p className="text-sm text-gray-600 mt-1">
                           {point.address?.street}, {point.address?.city}
                         </p>
-                        {point.contactPhone && (
-                          <p className="text-sm mt-2">📞 {point.contactPhone}</p>
+                        {point.phone && (
+                          <p className="text-sm mt-2">📞 {point.phone}</p>
                         )}
                         <button
                           onClick={() => window.open(
-                            `https://www.google.com/maps/search/?api=1&query=${point.location.coordinates[1]},${point.location.coordinates[0]}`,
+                            `https://www.google.com/maps/search/?api=1&query=${point.address.lat},${point.address.lng}`,
                             '_blank'
                           )}
                           className="mt-2 text-green-600 hover:underline text-sm font-medium"

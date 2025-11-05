@@ -2,7 +2,7 @@ import Pickup from '../models/Pickup.js';
 import CollectionPoint from '../models/CollectionPoint.js';
 import User from '../models/User.js';
 import { PICKUP_STATUS, ROLES, POINTS } from '../config/constants.js';
-import { checkAndAwardBadges, awardPoints, processReferralReward } from '../utils/gamification.js';
+import { awardPoints, processReferralReward } from '../utils/gamification.js';
 
 
 // @desc    Schedule a pickup
@@ -272,8 +272,8 @@ export const acceptPickup = async (req, res) => {
     await pickup.save();
 
     const populatedPickup = await Pickup.findById(pickup._id)
-      .populate('userId', 'name phone')
-      .populate('collectionPointId', 'name address phone');
+      .populate('userId', 'name phone email address')
+      .populate('collectionPointId', 'name address phone type');
 
     res.json({
       success: true,
@@ -329,8 +329,8 @@ export const rejectPickup = async (req, res) => {
     await pickup.save();
 
     const populatedPickup = await Pickup.findById(pickup._id)
-      .populate('userId', 'name phone')
-      .populate('collectionPointId', 'name address phone');
+      .populate('userId', 'name phone email address')
+      .populate('collectionPointId', 'name address phone type');
 
     res.json({
       success: true,
@@ -415,24 +415,20 @@ export const completePickup = async (req, res) => {
       'Pickup'
     );
 
-    // Check and award badges
-    const newBadges = await checkAndAwardBadges(pickup.userId, user.totalCollected);
-
     // Process referral reward if this was first collection
     if (wasFirstCollection && user.referredBy) {
       await processReferralReward(user._id);
     }
 
     const populatedPickup = await Pickup.findById(pickup._id)
-      .populate('userId', 'name phone')
-      .populate('collectionPointId', 'name address phone');
+      .populate('userId', 'name phone email address')
+      .populate('collectionPointId', 'name address phone type');
 
     res.json({
       success: true,
       message: 'Pickup completed successfully',
       pickup: populatedPickup,
-      pointsEarned,
-      newBadges: newBadges.map(b => b.name)
+      pointsEarned
     });
   } catch (error) {
     console.error('Complete pickup error:', error);
@@ -519,7 +515,8 @@ export const getCollectionPointPickups = async (req, res) => {
     }
 
     const pickups = await Pickup.find(query)
-      .populate('userId', 'name phone address')
+      .populate('userId', 'name phone email address')
+      .populate('collectionPointId', 'name address phone type')
       .sort({ createdAt: -1 });
 
     res.json({

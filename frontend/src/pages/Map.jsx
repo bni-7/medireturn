@@ -24,6 +24,34 @@ const Map = () => {
     applyFilters();
   }, [selectedType, searchQuery, collectionPoints]);
 
+  // Helper function to format operating hours
+  const formatOperatingHours = (operatingHours) => {
+    if (!operatingHours || typeof operatingHours !== 'object') {
+      return { display: 'N/A', open: null, close: null };
+    }
+    
+    // Check if it's a simple object with open/close times
+    if (operatingHours.open && operatingHours.close) {
+      return {
+        display: `${operatingHours.open} - ${operatingHours.close}`,
+        open: operatingHours.open,
+        close: operatingHours.close
+      };
+    }
+    
+    // Check if it's a weekly schedule - show today's hours
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    if (operatingHours[today] && !operatingHours[today].closed) {
+      return {
+        display: `${operatingHours[today].open} - ${operatingHours[today].close}`,
+        open: operatingHours[today].open,
+        close: operatingHours[today].close
+      };
+    }
+    
+    return { display: 'Closed Today', open: null, close: null };
+  };
+
   const fetchCollectionPoints = async () => {
     try {
       setLoading(true);
@@ -225,19 +253,20 @@ const Map = () => {
                         </span>
                       </div>
 
-                      {point.operatingHours && (
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-2" />
-                          <span>
-                            {point.operatingHours.open || 'N/A'} - {point.operatingHours.close || 'N/A'}
-                          </span>
-                          {point.operatingHours.open && point.operatingHours.close && isOpenNow(point.operatingHours.open, point.operatingHours.close) ? (
-                            <span className="ml-2 text-green-600 font-semibold">Open</span>
-                          ) : (
-                            <span className="ml-2 text-red-600 font-semibold">Closed</span>
-                          )}
-                        </div>
-                      )}
+                      {point.operatingHours && (() => {
+                        const hours = formatOperatingHours(point.operatingHours);
+                        return (
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-2" />
+                            <span>{hours.display}</span>
+                            {hours.open && hours.close && isOpenNow(hours.open, hours.close) ? (
+                              <span className="ml-2 text-green-600 font-semibold">Open</span>
+                            ) : hours.open && hours.close ? (
+                              <span className="ml-2 text-red-600 font-semibold">Closed</span>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
 
                       {point.phone && (
                         <div className="flex items-center">

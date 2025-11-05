@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Edit2, Save, X } from 'lucide-react';
 import toast from 'react-hot-toast'; // ✅ Import react-hot-toast
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { authAPI } from '../api/auth'; // ✅ Changed from usersAPI
+import { usersAPI } from '../api/users';
 import { validatePhone, validatePincode, validateRequired } from '../utils/validators';
 
 const Profile = () => {
@@ -26,6 +25,38 @@ const Profile = () => {
     }
   });
   const [errors, setErrors] = useState({});
+
+  // Fetch latest user profile data on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await usersAPI.getProfile();
+        if (response.success && response.user) {
+          // Update the user context with latest data
+          updateUser(response.user);
+          // Update form data as well
+          setFormData({
+            name: response.user.name || '',
+            phone: response.user.phone || '',
+            address: {
+              street: response.user.address?.street || '',
+              city: response.user.address?.city || '',
+              state: response.user.address?.state || '',
+              pincode: response.user.address?.pincode || ''
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        // Don't show error toast, just use cached data
+      }
+    };
+
+    if (user) {
+      fetchUserProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -127,8 +158,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
@@ -307,18 +336,10 @@ const Profile = () => {
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Points Earned</p>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-primary-600">
-                  {user?.badges?.length || 0}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Badges Earned</p>
-              </div>
             </div>
           </Card>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 };

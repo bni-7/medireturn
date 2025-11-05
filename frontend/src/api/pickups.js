@@ -24,6 +24,33 @@ export const pickupsAPI = {
     return response.data;
   },
 
+  acceptPickup: async (id) => {
+    const response = await axios.put(`/pickups/${id}/accept`);
+    return response.data;
+  },
+
+  rejectPickup: async (id, reason) => {
+    const response = await axios.put(`/pickups/${id}/reject`, { reason });
+    return response.data;
+  },
+
+  completePickup: async (id, data) => {
+    const response = await axios.put(`/pickups/${id}/complete`, data);
+    return response.data;
+  },
+
+  cancel: async (id) => {
+    const response = await axios.put(`/pickups/${id}/cancel`);
+    return response.data;
+  },
+
+  getCollectionPointPickups: async (status = '') => {
+    const params = status ? `?status=${status}` : '';
+    const response = await axios.get(`/pickups/collection-point/all${params}`);
+    return response.data;
+  },
+
+  // Keep legacy names for backward compatibility
   accept: async (id) => {
     const response = await axios.put(`/pickups/${id}/accept`);
     return response.data;
@@ -36,17 +63,6 @@ export const pickupsAPI = {
 
   complete: async (id, quantityCollected) => {
     const response = await axios.put(`/pickups/${id}/complete`, { quantityCollected });
-    return response.data;
-  },
-
-  cancel: async (id) => {
-    const response = await axios.put(`/pickups/${id}/cancel`);
-    return response.data;
-  },
-
-  getCollectionPointPickups: async (status = '') => {
-    const params = status ? `?status=${status}` : '';
-    const response = await axios.get(`/pickups/collection-point/all${params}`);
     return response.data;
   }
 };

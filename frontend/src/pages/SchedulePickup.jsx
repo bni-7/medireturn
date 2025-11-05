@@ -36,6 +36,26 @@ const SchedulePickup = () => {
     fetchCollectionPoints();
   }, []);
 
+  // Helper function to format operating hours
+  const formatOperatingHours = (operatingHours) => {
+    if (!operatingHours || typeof operatingHours !== 'object') {
+      return null;
+    }
+    
+    // Check if it's a simple object with open/close times
+    if (operatingHours.open && operatingHours.close) {
+      return `${operatingHours.open} - ${operatingHours.close}`;
+    }
+    
+    // Check if it's a weekly schedule - show today's hours
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    if (operatingHours[today] && !operatingHours[today].closed) {
+      return `${operatingHours[today].open} - ${operatingHours[today].close}`;
+    }
+    
+    return null;
+  };
+
   const fetchCollectionPoints = async () => {
     try {
       const response = await collectionPointsAPI.getAll();
@@ -242,11 +262,11 @@ const SchedulePickup = () => {
                   {selectedCP.address?.street}, {selectedCP.address?.city},{" "}
                   {selectedCP.address?.state} - {selectedCP.address?.pincode}
                 </p>
-                {selectedCP.operatingHours && (
+                {formatOperatingHours(selectedCP.operatingHours) && (
                   <div className="flex items-center text-sm text-gray-600 mb-1">
                     <Clock className="w-4 h-4 mr-2" />
                     <span>
-                      {selectedCP.operatingHours.open} - {selectedCP.operatingHours.close}
+                      {formatOperatingHours(selectedCP.operatingHours)}
                     </span>
                   </div>
                 )}

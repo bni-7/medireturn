@@ -42,10 +42,22 @@ const Header = () => {
                     Schedule Pickup
                   </Link>
                 )}
-                <Link to="/dashboard" className="text-gray-700 hover:text-green-600 transition-colors flex items-center gap-2">
-                  <LayoutDashboard size={18} />
-                  Dashboard
-                </Link>
+                {user?.role === 'admin' ? (
+                  <Link to="/admin" className="text-gray-700 hover:text-green-600 transition-colors flex items-center gap-2">
+                    <LayoutDashboard size={18} />
+                    Admin Dashboard
+                  </Link>
+                ) : user?.role === 'collection_point' ? (
+                  <Link to="/collection-point-dashboard" className="text-gray-700 hover:text-green-600 transition-colors flex items-center gap-2">
+                    <LayoutDashboard size={18} />
+                    Manage Pickups
+                  </Link>
+                ) : (
+                  <Link to="/dashboard" className="text-gray-700 hover:text-green-600 transition-colors flex items-center gap-2">
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </Link>
+                )}
                 
                 {/* User Dropdown */}
                 <div className="relative group">
@@ -115,13 +127,31 @@ const Header = () => {
                       Schedule Pickup
                     </Link>
                   )}
-                  <Link
-                    to="/dashboard"
-                    className="text-gray-700 hover:text-green-600 transition-colors"
-                    onClick={toggleMobileMenu}
-                  >
-                    Dashboard
-                  </Link>
+                  {user?.role === 'admin' ? (
+                    <Link
+                      to="/admin"
+                      className="text-gray-700 hover:text-green-600 transition-colors"
+                      onClick={toggleMobileMenu}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  ) : user?.role === 'collection_point' ? (
+                    <Link
+                      to="/collection-point-dashboard"
+                      className="text-gray-700 hover:text-green-600 transition-colors"
+                      onClick={toggleMobileMenu}
+                    >
+                      Manage Pickups
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/dashboard"
+                      className="text-gray-700 hover:text-green-600 transition-colors"
+                      onClick={toggleMobileMenu}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
                   <Link
                     to="/profile"
                     className="text-gray-700 hover:text-green-600 transition-colors"

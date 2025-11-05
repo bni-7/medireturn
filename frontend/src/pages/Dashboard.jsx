@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { 
   Package, 
   Calendar, 
@@ -10,8 +11,6 @@ import {
   XCircle,
   AlertCircle 
 } from 'lucide-react';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
 import StatsCard from '../components/dashboard/StatsCard';
 import Leaderboard from '../components/dashboard/Leaderboard';
 import Card from '../components/common/Card';
@@ -19,6 +18,7 @@ import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
+import Modal from '../components/common/Modal';
 import { useAuth } from '../hooks/useAuth';
 import { usersAPI } from '../api/users';
 import { pickupsAPI } from '../api/pickups';
@@ -27,15 +27,43 @@ import { formatDate, getStatusColor } from '../utils/helpers';
 import { ROLES, PICKUP_STATUS } from '../utils/constants';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [recentPickups, setRecentPickups] = useState([]);
+  const [selectedPickup, setSelectedPickup] = useState(null);
+  const [showPickupModal, setShowPickupModal] = useState(false);
 
   useEffect(() => {
+    if (!user) return; // Guard against no user
+    
     fetchDashboardData();
-  }, [user]);
+
+    // Refresh dashboard when user comes back to the page
+    const handleFocus = () => {
+      console.log('🔄 Dashboard page focused, refreshing data...');
+      fetchDashboardData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    // Also listen for visibility change
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('🔄 Page became visible, refreshing data...');
+        fetchDashboardData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   const fetchDashboardData = async () => {
     try {
@@ -48,6 +76,28 @@ const Dashboard = () => {
         ]);
         setDashboardData(dashboard);
         setRecentPickups(pickups.pickups.slice(0, 5));
+        
+        // Update user context with latest data only if values changed
+        if (dashboard.dashboard) {
+          const newPoints = dashboard.dashboard.points;
+          const newTotalCollected = dashboard.dashboard.totalCollected;
+          
+          // Check if any value has changed
+          const hasChanges = 
+            user.points !== newPoints || 
+            user.totalCollected !== newTotalCollected;
+          
+          // Only update if values have actually changed
+          if (hasChanges) {
+            const updatedUser = {
+              ...user,
+              points: newPoints,
+              totalCollected: newTotalCollected
+            };
+            // Update both localStorage and context
+            updateUser(updatedUser);
+          }
+        }
       } else if (user.role === ROLES.COLLECTION_POINT) {
         const [dashboard, pickups] = await Promise.all([
           collectionPointsAPI.getDashboard(),
@@ -58,6 +108,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching dashboard:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -108,28 +159,28 @@ const Dashboard = () => {
             <StatsCard
               icon={Package}
               title="Total Collected"
-              value={`${dashboardData?.stats?.totalCollected || 0}kg`}
+              value={`${dashboardData?.dashboard?.totalCollected || 0}kg`}
               subtitle="Medicines disposed safely"
               color="green"
             />
             <StatsCard
               icon={Calendar}
               title="Total Pickups"
-              value={dashboardData?.stats?.totalPickups || 0}
+              value={dashboardData?.dashboard?.totalPickups || 0}
               subtitle="Scheduled collections"
               color="blue"
             />
             <StatsCard
               icon={Award}
               title="Points Earned"
-              value={dashboardData?.stats?.points || 0}
+              value={dashboardData?.dashboard?.points || 0}
               subtitle="Reward points"
               color="yellow"
             />
             <StatsCard
               icon={TrendingUp}
               title="City Rank"
-              value={`#${dashboardData?.stats?.cityRank || '-'}`}
+              value={`#${dashboardData?.dashboard?.userRank || '-'}`}
               subtitle="In your city"
               color="purple"
             />
@@ -166,7 +217,10 @@ const Dashboard = () => {
                       <div
                         key={pickup._id}
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/pickups/${pickup._id}`)}
+                        onClick={() => {
+                          setSelectedPickup(pickup);
+                          setShowPickupModal(true);
+                        }}
                       >
                         <div className="flex items-center gap-4 flex-1">
                           <div>
@@ -181,38 +235,9 @@ const Dashboard = () => {
                             </p>
                           </div>
                         </div>
-                        <Badge variant={pickup.status === 'completed' ? 'success' : 'warning'}>
+                        <Badge variant={pickup.status === 'completed' ? 'success' : pickup.status === 'pending' ? 'warning' : pickup.status === 'rejected' || pickup.status === 'cancelled' ? 'danger' : 'default'}>
                           {pickup.status}
                         </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-
-              {/* Badges */}
-              <Card className="mt-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  Your Badges
-                </h2>
-                {dashboardData?.badges?.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">
-                    Start collecting to earn badges!
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {dashboardData?.badges?.map((badge, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col items-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl"
-                      >
-                        <span className="text-4xl mb-2">{badge.icon}</span>
-                        <p className="text-sm font-medium text-gray-900 text-center">
-                          {badge.name}
-                        </p>
-                        <p className="text-xs text-gray-600 text-center mt-1">
-                          {badge.description}
-                        </p>
                       </div>
                     ))}
                   </div>
@@ -223,7 +248,7 @@ const Dashboard = () => {
             {/* Leaderboard & Referral */}
             <div className="space-y-6">
               <Leaderboard
-                leaderboard={dashboardData?.leaderboard || []}
+                leaderboard={dashboardData?.dashboard?.leaderboard || []}
                 currentUserId={user._id}
               />
 
@@ -257,6 +282,111 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Pickup Details Modal */}
+        {showPickupModal && selectedPickup && (
+          <Modal
+            isOpen={showPickupModal}
+            onClose={() => {
+              setShowPickupModal(false);
+              setSelectedPickup(null);
+            }}
+            title="Pickup Details"
+          >
+            <div className="space-y-4">
+              {/* Status */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Status</label>
+                <div className="mt-1">
+                  <Badge 
+                    variant={
+                      selectedPickup.status === 'completed' ? 'success' : 
+                      selectedPickup.status === 'pending' ? 'warning' : 
+                      selectedPickup.status === 'rejected' || selectedPickup.status === 'cancelled' ? 'danger' : 
+                      'default'
+                    }
+                    className="text-lg px-4 py-2"
+                  >
+                    {selectedPickup.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Collection Point */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Collection Point</label>
+                <p className="mt-1 text-gray-900">{selectedPickup.collectionPointId?.name || 'N/A'}</p>
+                {selectedPickup.collectionPointId?.address && (
+                  <p className="text-sm text-gray-600">
+                    {selectedPickup.collectionPointId.address.street}, {selectedPickup.collectionPointId.address.city}
+                  </p>
+                )}
+              </div>
+
+              {/* Pickup Date & Time */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Scheduled Date & Time</label>
+                <p className="mt-1 text-gray-900">
+                  {formatDate(selectedPickup.preferredDate)} • {selectedPickup.timeSlot}
+                </p>
+              </div>
+
+              {/* Address */}
+              {selectedPickup.address && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Pickup Address</label>
+                  <p className="mt-1 text-gray-900">
+                    {selectedPickup.address.street}, {selectedPickup.address.city}, {selectedPickup.address.state} - {selectedPickup.address.pincode}
+                  </p>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedPickup.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Details</label>
+                  <p className="mt-1 text-gray-900 whitespace-pre-wrap">{selectedPickup.notes}</p>
+                </div>
+              )}
+
+              {/* Created Date */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Requested On</label>
+                <p className="mt-1 text-gray-900">{formatDate(selectedPickup.createdAt)}</p>
+              </div>
+
+              {/* Action Button */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPickupModal(false);
+                    setSelectedPickup(null);
+                  }}
+                >
+                  Close
+                </Button>
+                {selectedPickup.status === 'pending' && (
+                  <Button
+                    variant="danger"
+                    onClick={async () => {
+                      try {
+                        await pickupsAPI.cancel(selectedPickup._id);
+                        setShowPickupModal(false);
+                        setSelectedPickup(null);
+                        fetchDashboardData(); // Refresh data
+                        toast.success('Pickup cancelled successfully');
+                      } catch (error) {
+                        toast.error('Failed to cancel pickup');
+                      }
+                    }}
+                  >
+                    Cancel Pickup
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Modal>
+        )}
        
       </div>
     );
@@ -283,29 +413,29 @@ const Dashboard = () => {
             <StatsCard
               icon={Package}
               title="Total Collected"
-              value={`${dashboardData?.stats?.totalCollected || 0}kg`}
+              value={`${dashboardData?.dashboard?.stats?.totalCollected || 0}kg`}
               subtitle="Medicines collected"
               color="green"
             />
             <StatsCard
               icon={Clock}
               title="Pending Requests"
-              value={dashboardData?.stats?.pendingPickups || 0}
+              value={dashboardData?.dashboard?.stats?.pendingCount || 0}
               subtitle="Awaiting response"
               color="yellow"
             />
             <StatsCard
               icon={CheckCircle}
               title="Completed"
-              value={dashboardData?.stats?.completedPickups || 0}
+              value={dashboardData?.dashboard?.stats?.completedPickups || 0}
               subtitle="Total pickups"
               color="blue"
             />
             <StatsCard
               icon={TrendingUp}
-              title="This Month"
-              value={`${dashboardData?.stats?.thisMonth || 0}kg`}
-              subtitle="Monthly collection"
+              title="Accepted Pickups"
+              value={`${dashboardData?.dashboard?.stats?.acceptedCount || 0}`}
+              subtitle="In progress"
               color="purple"
             />
           </div>
@@ -391,7 +521,6 @@ const Dashboard = () => {
             )}
           </Card>
         </div>
-
       </div>
     );
   }

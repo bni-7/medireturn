@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Award, TrendingUp, CheckCircle, Users } from 'lucide-react';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
+import { Link, useNavigate } from 'react-router-dom';
+import { MapPin, Calendar, Award, TrendingUp, CheckCircle, Users, Shield, Building2, User } from 'lucide-react';
 import Button from '../components/common/Button';
+import { useAuth } from '../hooks/useAuth';
 
 const Home = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const features = [
     {
       icon: MapPin,
@@ -20,7 +21,7 @@ const Home = () => {
     {
       icon: Award,
       title: 'Earn Rewards',
-      description: 'Get points and badges for contributing to safe medicine disposal'
+      description: 'Get points for contributing to safe medicine disposal'
     },
     {
       icon: TrendingUp,
@@ -61,8 +62,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-50 to-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -75,12 +74,20 @@ const Home = () => {
                 Join thousands of Indians in making our communities healthier and safer through responsible medicine disposal.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/signup">
-                  <Button variant="primary" size="large">
-                    Get Started
-                  </Button>
-                </Link>
-                <Link to="/map">
+                {user ? (
+                  <Link to="/dashboard">
+                    <Button variant="primary" size="large">
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/register">
+                    <Button variant="primary" size="large">
+                      Get Started
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/collection-points">
                   <Button variant="outline" size="large">
                     Find Collection Points
                   </Button>
@@ -194,11 +201,19 @@ const Home = () => {
                 ))}
               </div>
               <div className="mt-8">
-                <Link to="/signup">
-                  <Button variant="secondary" size="large">
-                    Join Now
-                  </Button>
-                </Link>
+                {user ? (
+                  <Link to="/dashboard">
+                    <Button variant="secondary" size="large">
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/register">
+                    <Button variant="secondary" size="large">
+                      Join Now
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
             <div className="relative">
@@ -222,12 +237,58 @@ const Home = () => {
           <p className="text-xl text-gray-600 mb-8">
             Join our community and start your journey towards safer medicine disposal today.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
-              <Button variant="primary" size="large">
-                Create Account
-              </Button>
-            </Link>
+
+          {/* Login Options */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Choose Your Login Type</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-6">
+              <Link to="/citizen-login">
+                <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-500 cursor-pointer">
+                  <User className="w-10 h-10 text-primary-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 mb-2">Citizen Login</h4>
+                  <p className="text-sm text-gray-600">For individuals disposing medicines</p>
+                </div>
+              </Link>
+              <Link to="/collection-point-login">
+                <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-teal-500 cursor-pointer">
+                  <Building2 className="w-10 h-10 text-teal-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 mb-2">Collection Point</h4>
+                  <p className="text-sm text-gray-600">For pharmacies & hospitals</p>
+                </div>
+              </Link>
+              <Link to="/admin-login">
+                <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-indigo-500 cursor-pointer">
+                  <Shield className="w-10 h-10 text-indigo-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 mb-2">Admin Portal</h4>
+                  <p className="text-sm text-gray-600">For administrators only</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-gray-50 text-gray-500">or</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            {user ? (
+              <Link to="/dashboard">
+                <Button variant="primary" size="large">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/register">
+                <Button variant="primary" size="large">
+                  Create New Account
+                </Button>
+              </Link>
+            )}
             <Link to="/map">
               <Button variant="outline" size="large">
                 Explore Map
@@ -236,8 +297,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

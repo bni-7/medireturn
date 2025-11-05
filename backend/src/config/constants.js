@@ -22,8 +22,7 @@ export const PICKUP_STATUS = {
 export const TRANSACTION_TYPES = {
   COLLECTION: 'collection',
   REFERRAL_BONUS: 'referral_bonus',
-  MONTHLY_STREAK: 'monthly_streak',
-  BADGE_EARNED: 'badge_earned'
+  MONTHLY_STREAK: 'monthly_streak'
 };
 
 export const TIME_SLOTS = [
@@ -38,37 +37,4 @@ export const POINTS = {
   PER_KG: 10,
   REFERRAL_BONUS: 50,
   MONTHLY_STREAK: 25
-};
-
-export const BADGES = {
-  BEGINNER: {
-    name: 'Beginner',
-    description: 'First collection',
-    icon: '🌟',
-    requirement: 1
-  },
-  ENTHUSIAST: {
-    name: 'Enthusiast',
-    description: '5 collections',
-    icon: '🔥',
-    requirement: 5
-  },
-  CHAMPION: {
-    name: 'Champion',
-    description: '10 collections',
-    icon: '💎',
-    requirement: 10
-  },
-  LEGEND: {
-    name: 'Legend',
-    description: '25 collections',
-    icon: '👑',
-    requirement: 25
-  },
-  ECO_WARRIOR: {
-    name: 'Eco Warrior',
-    description: '100kg collected',
-    icon: '🌍',
-    requirement: 100
-  }
 };
