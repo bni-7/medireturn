@@ -8,7 +8,7 @@ import { validateEmail, validateRequired } from '../utils/validators';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ Remove isAuthenticated
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -19,13 +19,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // ❌ REMOVE THIS ENTIRE useEffect - Let PublicRoute handle it
-  // React.useEffect(() => {
-  //   if (isAuthenticated) {
-  //     navigate('/dashboard');
-  //   }
-  // }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,8 +63,12 @@ const Login = () => {
       const result = await login(formData);
       
       if (result.success) {
-        console.log('✅ Login successful, navigating to dashboard...');
-        // ✅ Simple navigation without setTimeout
+        console.log('✅ Login successful, waiting for state update...');
+        
+        // ✅ Wait a moment for state to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        console.log('✅ Navigating to dashboard...');
         navigate('/dashboard', { replace: true });
       } else {
         setError(result.error || 'Login failed');
