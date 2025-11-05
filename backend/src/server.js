@@ -25,24 +25,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ✅ CORS Configuration - Allow multiple origins
-const allowedOrigins = [
-  'https://medireturn.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000'
-];
-
+// ✅ CORS Configuration - Allow all Vercel deployments + localhost
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, Postman, curl)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('❌ CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+    // ✅ Allow all Vercel preview and production deployments
+    if (origin.includes('vercel.app')) {
+      console.log('✅ CORS allowed Vercel origin:', origin);
+      return callback(null, true);
     }
+    
+    // ✅ Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      console.log('✅ CORS allowed localhost origin:', origin);
+      return callback(null, true);
+    }
+    
+    console.log('❌ CORS blocked origin:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -97,7 +99,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`✓ Allowed origins:`, allowedOrigins);
+  console.log(`✓ CORS: Allowing all vercel.app and localhost origins`);
 });
 
 export default app;
