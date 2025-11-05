@@ -51,67 +51,84 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+// ✅ Layout wrapper component - must be inside Router and AuthProvider
+const Layout = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Header />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Toaster position="top-right" />
+        <Toaster position="top-right" />
+        
+        <Routes>
+          {/* Public Routes with Layout */}
+          <Route path="/" element={<Layout><Home /></Layout>} />
+          <Route path="/collection-points" element={<Layout><CollectionPoints /></Layout>} />
+          <Route path="/map" element={<Layout><Map /></Layout>} />
           
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/collection-points" element={<CollectionPoints />} />
-            <Route path="/map" element={<Map />} />
-            
-            {/* Auth Routes */}
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              } 
-            />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
+          {/* Auth Routes - No Header/Footer */}
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } 
+          />
+          
+          {/* Protected Routes with Layout */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Layout>
                   <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/schedule-pickup" 
-              element={
-                <ProtectedRoute>
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/schedule-pickup" 
+            element={
+              <ProtectedRoute>
+                <Layout>
                   <SchedulePickup />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Layout>
                   <Profile />
-                </ProtectedRoute>
-              } 
-            />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
 
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
+          {/* 404 with Layout */}
+          <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
       </Router>
     </AuthProvider>
   );
